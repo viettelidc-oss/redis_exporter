@@ -16,7 +16,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	prom_strutil "github.com/prometheus/prometheus/util/strutil"
+	strutil "github.com/prometheus/prometheus/util/strutil"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -181,6 +181,7 @@ func NewRedisExporter(redisURI string, opts ExporterOptions) (*Exporter, error) 
 			// # Clients
 			"connected_clients": "connected_clients",
 			"blocked_clients":   "blocked_clients",
+			"tracking_clients":  "tracking_clients",
 
 			// redis 2,3,4.x
 			"client_longest_output_list": "client_longest_output_list",
@@ -191,16 +192,31 @@ func NewRedisExporter(redisURI string, opts ExporterOptions) (*Exporter, error) 
 			"client_recent_max_input_buffer":  "client_recent_max_input_buffer_bytes",
 
 			// # Memory
-			"allocator_active":    "allocator_active_bytes",
-			"allocator_allocated": "allocator_allocated_bytes",
-			"allocator_resident":  "allocator_resident_bytes",
-			"used_memory":         "memory_used_bytes",
-			"used_memory_rss":     "memory_used_rss_bytes",
-			"used_memory_peak":    "memory_used_peak_bytes",
-			"used_memory_lua":     "memory_used_lua_bytes",
-			"maxmemory":           "memory_max_bytes",
+			"allocator_active":     "allocator_active_bytes",
+			"allocator_allocated":  "allocator_allocated_bytes",
+			"allocator_resident":   "allocator_resident_bytes",
+			"allocator_frag_ratio": "allocator_frag_ratio",
+			"allocator_frag_bytes": "allocator_frag_bytes",
+			"allocator_rss_ratio":  "allocator_rss_ratio",
+			"allocator_rss_bytes":  "allocator_rss_bytes",
+
+			"used_memory":      "memory_used_bytes",
+			"used_memory_rss":  "memory_used_rss_bytes",
+			"used_memory_peak": "memory_used_peak_bytes",
+			"used_memory_lua":  "memory_used_lua_bytes",
+			"maxmemory":        "memory_max_bytes",
+
+			"mem_fragmentation_ratio": "mem_fragmentation_ratio",
+			"mem_fragmentation_bytes": "mem_fragmentation_bytes",
+
+			"mem_clients_slaves": "mem_clients_slaves",
+			"mem_clients_normal": "mem_clients_normal",
+
+			"lazyfree_pending_objects": "lazyfree_pending_objects",
+			"active_defrag_running":    "active_defrag_running",
 
 			// # Persistence
+			"loading":                      "loading_dump_file",
 			"rdb_changes_since_last_save":  "rdb_changes_since_last_save",
 			"rdb_bgsave_in_progress":       "rdb_bgsave_in_progress",
 			"rdb_last_save_time":           "rdb_last_save_timestamp_seconds",
@@ -223,6 +239,8 @@ func NewRedisExporter(redisURI string, opts ExporterOptions) (*Exporter, error) 
 			"aof_delayed_fsync":            "aof_delayed_fsync",
 			"aof_last_bgrewrite_status":    "aof_last_bgrewrite_status",
 			"aof_last_write_status":        "aof_last_write_status",
+			"module_fork_in_progress":      "module_fork_in_progress",
+			"module_fork_last_cow_size":    "module_fork_last_cow_size",
 
 			// # Stats
 			"pubsub_channels":  "pubsub_channels",
@@ -230,7 +248,6 @@ func NewRedisExporter(redisURI string, opts ExporterOptions) (*Exporter, error) 
 			"latest_fork_usec": "latest_fork_usec",
 
 			// # Replication
-			"loading":                    "loading_dump_file",
 			"connected_slaves":           "connected_slaves",
 			"repl_backlog_size":          "replication_backlog_bytes",
 			"master_last_io_seconds_ago": "master_last_io_seconds",
@@ -295,6 +312,8 @@ func NewRedisExporter(redisURI string, opts ExporterOptions) (*Exporter, error) 
 	} else {
 		log.Debugf("singleKeys: %#v", singleKeys)
 	}
+
+	fmt.Printf("opts: %#v \n", opts)
 
 	if opts.InclSystemMetrics {
 		e.metricMapGauges["total_system_memory"] = "total_system_memory_bytes"
@@ -434,7 +453,7 @@ func (e *Exporter) includeMetric(s string) bool {
 }
 
 func sanitizeMetricName(n string) string {
-	return prom_strutil.SanitizeLabelName(n)
+	return strutil.SanitizeLabelName(n)
 }
 
 func extractVal(s string) (val float64, err error) {
