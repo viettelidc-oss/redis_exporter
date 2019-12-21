@@ -17,7 +17,7 @@ services:
   - name: redis6
     image: oliver006/redis:6.0-rc1
     commands:
-      - "/usr/local/bin/redis-server redis-server  --protected-mode no"
+      - "/usr/local/bin/redis-server --protected-mode no"
     ports:
       - 6379
 
