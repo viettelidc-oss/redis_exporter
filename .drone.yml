@@ -9,8 +9,16 @@ workspace:
 services:
   - name: redis5
     image: redis:5
+    commands:
+      - "/usr/local/bin/redis-server --port 6381"
+    ports:
+      - 6383
+
+  - name: redis6
+    image: oliver006/redis:6.0-rc1
     ports:
       - 6379
+
   - name: pwd-redis5
     image: redis:5
     commands:
