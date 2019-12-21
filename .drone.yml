@@ -16,6 +16,8 @@ services:
 
   - name: redis6
     image: oliver006/redis:6.0-rc1
+    commands:
+      - "/usr/local/bin/redis-server redis-server  --protected-mode no"
     ports:
       - 6379
 
@@ -53,7 +55,7 @@ steps:
       GO111MODULE: on
       LOG_LEVEL: "info"
       TEST_TILE38_URI: "redis://tile38:9851"
-      TEST_REDIS_URI: "redis://redis5:6379"
+      TEST_REDIS_URI: "redis://redis6:6379"
       TEST_REDIS_2_8_URI: "redis://redis-2-8:6381"
       TEST_PWD_REDIS_URI: "redis://h:redis-password@pwd-redis5:6380"
       TEST_REDIS_CLUSTER_MASTER_URI: "redis://redis-cluster:7000"
