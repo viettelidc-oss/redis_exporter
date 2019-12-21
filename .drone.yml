@@ -64,7 +64,7 @@ steps:
         from_secret: coveralls-token
     commands:
       - 'go build -mod=vendor'
-      - "sleep 10"   # let the redis test instances all come up first
+      - "sleep 20"   # let the redis test instances all come up first
       - 'go test -mod=vendor -v -covermode=atomic -cover -race -coverprofile=coverage.txt .'
       - 'echo "checking gofmt"'
       - 'echo " ! gofmt -d *.go       2>&1 | read " | bash'
