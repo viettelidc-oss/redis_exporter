@@ -200,11 +200,16 @@ func NewRedisExporter(redisURI string, opts ExporterOptions) (*Exporter, error) 
 			"allocator_rss_ratio":  "allocator_rss_ratio",
 			"allocator_rss_bytes":  "allocator_rss_bytes",
 
-			"used_memory":      "memory_used_bytes",
-			"used_memory_rss":  "memory_used_rss_bytes",
-			"used_memory_peak": "memory_used_peak_bytes",
-			"used_memory_lua":  "memory_used_lua_bytes",
-			"maxmemory":        "memory_max_bytes",
+			"used_memory":          "memory_used_bytes",
+			"used_memory_rss":      "memory_used_rss_bytes",
+			"used_memory_peak":     "memory_used_peak_bytes",
+			"used_memory_lua":      "memory_used_lua_bytes",
+			"used_memory_overhead": "memory_used_overhead_bytes",
+			"used_memory_startup":  "memory_used_startup_bytes",
+			"used_memory_dataset":  "memory_used_dataset_bytes",
+			"used_memory_scripts":  "memory_used_scripts_bytes",
+
+			"maxmemory": "memory_max_bytes",
 
 			"mem_fragmentation_ratio": "mem_fragmentation_ratio",
 			"mem_fragmentation_bytes": "mem_fragmentation_bytes",
@@ -214,6 +219,13 @@ func NewRedisExporter(redisURI string, opts ExporterOptions) (*Exporter, error) 
 
 			"lazyfree_pending_objects": "lazyfree_pending_objects",
 			"active_defrag_running":    "active_defrag_running",
+
+			"migrate_cached_sockets": "migrate_cached_sockets_total",
+
+			"active_defrag_hits":       "defrag_hits",
+			"active_defrag_misses":     "defrag_misses",
+			"active_defrag_key_hits":   "defrag_key_hits",
+			"active_defrag_key_misses": "defrag_key_misses",
 
 			// # Persistence
 			"loading":                      "loading_dump_file",
@@ -248,10 +260,16 @@ func NewRedisExporter(redisURI string, opts ExporterOptions) (*Exporter, error) 
 			"latest_fork_usec": "latest_fork_usec",
 
 			// # Replication
-			"connected_slaves":           "connected_slaves",
-			"repl_backlog_size":          "replication_backlog_bytes",
-			"master_last_io_seconds_ago": "master_last_io_seconds",
-			"master_repl_offset":         "master_repl_offset",
+			"connected_slaves":               "connected_slaves",
+			"repl_backlog_size":              "replication_backlog_bytes",
+			"repl_backlog_active":            "repl_backlog_is_active",
+			"repl_backlog_first_byte_offset": "repl_backlog_first_byte_offset",
+			"repl_backlog_histlen":           "repl_backlog_history_bytes",
+			"master_last_io_seconds_ago":     "master_last_io_seconds",
+			"master_repl_offset":             "master_repl_offset",
+			"sync_full":                      "replica_resyncs_full",
+			"sync_partial_ok":                "replica_partial_resync_accepted",
+			"sync_partial_err":               "replica_partial_resync_denied",
 
 			// # Cluster
 			"cluster_stats_messages_sent":     "cluster_messages_sent_total",
@@ -312,9 +330,7 @@ func NewRedisExporter(redisURI string, opts ExporterOptions) (*Exporter, error) 
 	} else {
 		log.Debugf("singleKeys: %#v", singleKeys)
 	}
-
-	fmt.Printf("opts: %#v \n", opts)
-
+	
 	if opts.InclSystemMetrics {
 		e.metricMapGauges["total_system_memory"] = "total_system_memory_bytes"
 	}
