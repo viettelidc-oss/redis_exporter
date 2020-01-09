@@ -1,4 +1,4 @@
-redis_exporter
+#redis_exporter
 coverage.out
 coverage.txt
 dist/
